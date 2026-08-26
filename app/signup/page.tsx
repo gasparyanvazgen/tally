@@ -63,7 +63,7 @@ export default function Signup() {
       <form onSubmit={handleSubmit} className="space-y-4">
         <Field
           label="Business or your name"
-          hint="Shown on your invoices \u2014 you can change this later."
+          hint="Shown on your invoices — you can change this later."
         >
           <input
             value={businessName}

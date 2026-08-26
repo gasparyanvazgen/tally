@@ -30,7 +30,7 @@ const FEATURES = [
   {
     icon: IconDashboard,
     title: "Dashboard",
-    body: "Hours this week, earnings this month by client, and a quick chart of the last few weeks \u2014 built for a glance, not a report.",
+    body: "Hours this week, earnings this month by client, and a quick chart of the last few weeks — built for a glance, not a report.",
   },
   {
     icon: IconInvoice,
@@ -53,7 +53,7 @@ const STEPS = [
   {
     n: "03",
     title: "Send the invoice",
-    body: "Pick a client and a range, and every unbilled hour becomes one clean PDF \u2014 marked billed the moment it\u2019s sent.",
+    body: "Pick a client and a range, and every unbilled hour becomes one clean PDF — marked billed the moment it\u2019s sent.",
   },
 ];
 
@@ -95,7 +95,7 @@ export default function Landing() {
               </Link>
             </div>
             <p className="mt-5 text-xs text-ink-400">
-              No card required. Your data stays yours \u2014 export it any time.
+              No card required. Your data stays yours — export it any time.
             </p>
           </div>
 
@@ -111,7 +111,7 @@ export default function Landing() {
           <div className="grid gap-10 sm:grid-cols-3">
             <Stat
               n="2"
-              label="missed billable sessions is two too many \u2014 that's what started this"
+              label="missed billable sessions is two too many — that's what started this"
             />
             <Stat n="½ day" label="lost to invoicing by hand, most months" />
             <Stat
@@ -171,8 +171,8 @@ export default function Landing() {
           Go from no invoice to sent invoice in under two minutes.
         </h2>
         <p className="mx-auto mt-4 max-w-md text-ink-500">
-          Set up your first client and start your first timer today \u2014 it's
-          free while you try it.
+          Set up your first client and start your first timer today — it's free
+          while you try it.
         </p>
         <Link
           href="/signup"

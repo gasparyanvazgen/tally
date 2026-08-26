@@ -48,8 +48,7 @@ export default function Projects() {
 
       {activeClients.length === 0 && (
         <p className="mb-5 rounded-lg border border-amber/30 bg-amber-light px-4 py-3 text-sm text-ink-700">
-          Add an active client first \u2014 every project needs one to belong
-          to.
+          Add an active client first — every project needs one to belong to.
         </p>
       )}
 

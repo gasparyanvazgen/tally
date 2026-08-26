@@ -152,9 +152,8 @@ export default function InvoiceDetail() {
       </Card>
 
       <p className="mt-4 text-center text-xs text-ink-400 print:hidden">
-        “Download PDF” uses your browser's print-to-PDF \u2014 wire up
-        server-side PDF rendering per backend task 6 for a production-grade
-        export.
+        “Download PDF” uses your browser's print-to-PDF — wire up server-side
+        PDF rendering per backend task 6 for a production-grade export.
       </p>
     </div>
   );
