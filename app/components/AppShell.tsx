@@ -1,3 +1,5 @@
+"use client"
+
 // The app shell is the persistent dashboard frame: navigation, header, and live timer.
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
