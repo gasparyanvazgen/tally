@@ -14,11 +14,25 @@ export default function Settings() {
   );
   const [address, setAddress] = useState(profile.address);
   const [saved, setSaved] = useState(false);
+  const [saveError, setSaveError] = useState("");
+  const [saving, setSaving] = useState(false);
 
-  function handleSubmit(e: FormEvent) {
-    // Save the form values in AuthContext and briefly show confirmation feedback.
+  async function handleSubmit(e: FormEvent) {
+    // Save the form values via AuthContext, which writes to the profiles table.
     e.preventDefault();
-    updateProfile({ businessName, ownerName, email: profileEmail, address });
+    setSaving(true);
+    setSaveError("");
+    const { error } = await updateProfile({
+      businessName,
+      ownerName,
+      email: profileEmail,
+      address,
+    });
+    setSaving(false);
+    if (error) {
+      setSaveError(error);
+      return;
+    }
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   }
@@ -68,8 +82,11 @@ export default function Settings() {
               className={inputClass}
             />
           </Field>
+          {saveError && <p className="text-sm text-rust">{saveError}</p>}
           <div className="flex items-center gap-3 pt-2">
-            <Button type="submit">Save changes</Button>
+            <Button type="submit" disabled={saving}>
+              {saving ? "Saving…" : "Save changes"}
+            </Button>
             {saved && <span className="text-sm text-stamp-dark">Saved.</span>}
           </div>
         </form>

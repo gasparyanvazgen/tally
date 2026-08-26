@@ -30,8 +30,20 @@ export default function Signup() {
     }
     setError("");
     setLoading(true);
-    // Create the temporary demo account, then take the user to their dashboard.
-    await signUp(email, password, businessName);
+    const { error: signUpError, needsEmailConfirmation } = await signUp(
+      email,
+      password,
+      businessName,
+    );
+    setLoading(false);
+    if (signUpError) {
+      setError(signUpError);
+      return;
+    }
+    if (needsEmailConfirmation) {
+      setError("Check your email to confirm your account, then log in.");
+      return;
+    }
     router.push("/app");
   }
 
@@ -84,10 +96,6 @@ export default function Signup() {
         <Button type="submit" disabled={loading} className="w-full">
           {loading ? "Creating account…" : "Create account"}
         </Button>
-        <p className="text-center text-xs text-ink-400">
-          Demo build \u2014 no email verification, nothing is actually sent
-          anywhere.
-        </p>
       </form>
     </AuthLayout>
   );

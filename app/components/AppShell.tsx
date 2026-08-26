@@ -118,8 +118,8 @@ export default function AppShell({ children }: { children: ReactNode }) {
               <p className="truncate text-xs text-ink-400">{profile.email}</p>
             </div>
             <button
-              onClick={() => {
-                signOut()
+              onClick={async () => {
+                await signOut()
                 router.push('/')
               }}
               aria-label="Log out"

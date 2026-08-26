@@ -3,15 +3,18 @@ import { useRouter } from 'next/navigation'
 import { useAuth } from '../context/AuthContext'
 
 export default function RequireAuth({ children }: { children: ReactNode }) {
-  const { isAuthenticated } = useAuth()
+  const { isAuthenticated, loading } = useAuth()
   const router = useRouter()
 
-  // Redirect visitors who are not signed in after the browser has checked their session.
+  // Wait for the initial Supabase session check before deciding whether to
+  // redirect — otherwise a logged-in user gets bounced to /login on every
+  // refresh, since isAuthenticated starts false until getSession() resolves.
   useEffect(() => {
-    if (!isAuthenticated) router.replace('/login')
-  }, [isAuthenticated, router])
+    if (!loading && !isAuthenticated) router.replace('/login')
+  }, [loading, isAuthenticated, router])
 
-  // Do not briefly show private dashboard content while the redirect is happening.
-  if (!isAuthenticated) return null
+  // Do not briefly show private dashboard content while the session check
+  // or the redirect is happening.
+  if (loading || !isAuthenticated) return null
   return <>{children}</>
 }

@@ -25,8 +25,12 @@ export default function Login() {
     }
     setError("");
     setLoading(true);
-    // Update the shared auth state, then navigate to the private dashboard.
-    await signIn(email, password);
+    const { error: signInError } = await signIn(email, password);
+    setLoading(false);
+    if (signInError) {
+      setError(signInError);
+      return;
+    }
     router.push("/app");
   }
 
@@ -72,9 +76,6 @@ export default function Login() {
         <Button type="submit" disabled={loading} className="w-full">
           {loading ? "Logging in…" : "Log in"}
         </Button>
-        <p className="text-center text-xs text-ink-400">
-          Demo build \u2014 any email and password will do.
-        </p>
       </form>
     </AuthLayout>
   );
