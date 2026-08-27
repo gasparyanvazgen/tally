@@ -88,10 +88,15 @@ interface DataContextValue extends DataShape {
   // projects
   addProject: (p: Omit<Project, 'id' | 'createdAt'>) => Promise<Result>
   updateProject: (id: string, patch: Partial<Project>) => Promise<Result>
+  deleteProject: (id: string) => Promise<Result>
+  // True once this project has any time entries (billed or not), which is
+  // when deletion must be blocked — the entries (and any invoice built from
+  // them) would otherwise be left pointing at a project that no longer exists.
+  projectHasTimeEntries: (id: string) => boolean
   // time entries
   addTimeEntry: (e: Omit<TimeEntry, 'id' | 'billed' | 'invoiceId' | 'createdAt'>) => void
   updateTimeEntry: (id: string, patch: Partial<TimeEntry>) => void
-  deleteTimeEntry: (id: string) => void
+  deleteTimeEntry: (id: string) => Result
   // timer
   startTimer: (projectId: string) => void
   stopTimer: (note?: string) => void
@@ -318,6 +323,29 @@ export function DataProvider({ children }: { children: ReactNode }) {
     return { error: null }
   }
 
+  // A project is deletable only once nothing references it — every time
+  // entry (and, transitively, every invoice line item built from one) keeps
+  // a projectId, so removing a referenced project would orphan that history.
+  const projectHasTimeEntries = (id: string): boolean =>
+    state.timeEntries.some((e) => e.projectId === id)
+
+  // Deletes a project outright. Guarded the same way on both sides: the
+  // button that opens this is disabled/hidden once the project has time
+  // entries, and this check runs again here so the rule holds even if
+  // something else calls it.
+  const deleteProject = async (id: string): Promise<Result> => {
+    if (projectHasTimeEntries(id)) {
+      return {
+        error:
+          'This project has time entries logged against it and can\u2019t be deleted. Mark it completed instead, or delete its time entries first.',
+      }
+    }
+    const { error } = await supabase.from('projects').delete().eq('id', id)
+    if (error) return { error: error.message }
+    setProjects((cur) => cur.filter((p) => p.id !== id))
+    return { error: null }
+  }
+
   const value: DataContextValue = useMemo(
     () => ({
       ...state,
@@ -330,11 +358,13 @@ export function DataProvider({ children }: { children: ReactNode }) {
       rateForProject,
       currencyForProject,
       unbilledMinutesForClient,
+      projectHasTimeEntries,
       addClient,
       updateClient,
       archiveClient,
       addProject,
       updateProject,
+      deleteProject,
 
       // New entries begin unbilled and are placed first so recent work appears at the top.
       addTimeEntry: (e) =>
@@ -353,9 +383,18 @@ export function DataProvider({ children }: { children: ReactNode }) {
           timeEntries: s.timeEntries.map((e) => (e.id === id ? { ...e, ...patch } : e)),
         })),
 
-      // Remove one entry. A real backend must also forbid removal of billed entries.
-      deleteTimeEntry: (id) =>
-        setState((s) => ({ ...s, timeEntries: s.timeEntries.filter((e) => e.id !== id) })),
+      // Remove one entry. Once an entry is billed it's part of an issued
+      // invoice's history, so deletion is refused here too, not just by
+      // disabling the button — matches the same belt-and-suspenders check
+      // deleteProject does below.
+      deleteTimeEntry: (id) => {
+        const entry = state.timeEntries.find((e) => e.id === id)
+        if (entry?.billed) {
+          return { error: 'This entry has already been billed and can\u2019t be deleted.' }
+        }
+        setState((s) => ({ ...s, timeEntries: s.timeEntries.filter((e) => e.id !== id) }))
+        return { error: null }
+      },
 
       // Store the start timestamp; elapsed time is calculated later from this value.
       startTimer: (projectId) =>
