@@ -94,7 +94,7 @@ export default function Projects() {
                   <button
                     onClick={() => setModalProject(p)}
                     aria-label={`Edit ${p.name}`}
-                    className="shrink-0 rounded-md p-1 text-ink-300 opacity-0 transition-opacity hover:bg-ink-100 hover:text-ink group-hover:opacity-100"
+                    className="shrink-0 rounded-md p-1 text-ink-300 transition-colors hover:bg-ink-100 hover:text-ink"
                   >
                     <IconPencil className="h-3.5 w-3.5" />
                   </button>
