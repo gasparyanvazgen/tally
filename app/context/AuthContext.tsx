@@ -31,7 +31,7 @@ interface AuthContextValue {
     email: string,
     password: string,
     businessName: string,
-  ) => Promise<{ error: string | null; needsEmailConfirmation: boolean }>;
+  ) => Promise<{ error: string | null; needsEmailConfirmation: boolean; emailExists: boolean }>;
   signOut: () => Promise<void>;
   updateProfile: (profile: BusinessProfile) => Promise<{ error: string | null }>;
 }
@@ -122,11 +122,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             data: businessName ? { business_name: businessName } : undefined,
           },
         });
+        // Two different signals mean "this email is already registered":
+        // - When email confirmation is OFF, Supabase returns a real error.
+        // - When email confirmation is ON, Supabase intentionally returns
+        //   no error (to avoid leaking which emails are registered) but
+        //   sends back a user object with an empty `identities` array.
+        const emailExists =
+          /already registered|already exists/i.test(error?.message ?? "") ||
+          (!error && !!data.user && (data.user.identities?.length ?? 0) === 0);
         // If the Supabase project requires email confirmation, signUp
         // succeeds but returns no session — nothing to redirect into yet.
-        const confirmationNeeded = !error && !data.session;
+        const confirmationNeeded = !error && !emailExists && !data.session;
         setNeedsEmailConfirmation(confirmationNeeded);
-        return { error: error?.message ?? null, needsEmailConfirmation: confirmationNeeded };
+        return {
+          error: emailExists ? null : error?.message ?? null,
+          needsEmailConfirmation: confirmationNeeded,
+          emailExists,
+        };
       },
       signOut: async () => {
         await supabase.auth.signOut();

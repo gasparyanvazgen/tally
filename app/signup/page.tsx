@@ -16,6 +16,7 @@ export default function Signup() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [emailExists, setEmailExists] = useState(false);
 
   async function handleSubmit(e: FormEvent) {
     // Prevent normal HTML form navigation so we can validate first.
@@ -29,13 +30,15 @@ export default function Signup() {
       return;
     }
     setError("");
+    setEmailExists(false);
     setLoading(true);
-    const { error: signUpError, needsEmailConfirmation } = await signUp(
-      email,
-      password,
-      businessName,
-    );
+    const { error: signUpError, needsEmailConfirmation, emailExists: alreadyExists } =
+      await signUp(email, password, businessName);
     setLoading(false);
+    if (alreadyExists) {
+      setEmailExists(true);
+      return;
+    }
     if (signUpError) {
       setError(signUpError);
       return;
@@ -92,6 +95,14 @@ export default function Signup() {
             placeholder="At least 6 characters"
           />
         </Field>
+        {emailExists && (
+          <p className="text-sm text-rust">
+            An account with this email already exists.{" "}
+            <Link href="/login" className="font-medium underline hover:text-ink">
+              Log in instead.
+            </Link>
+          </p>
+        )}
         {error && <p className="text-sm text-rust">{error}</p>}
         <Button type="submit" disabled={loading} className="w-full">
           {loading ? "Creating account…" : "Create account"}
