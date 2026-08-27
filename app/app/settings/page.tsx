@@ -97,7 +97,7 @@ export default function Settings() {
         <p className="mt-1 text-sm text-ink-500">Logged in as {email}</p>
         <p className="mt-3 text-xs text-ink-400">
           Password changes and account deletion aren't wired up in this demo
-          build — see backend task 1 for real auth.
+          build.
         </p>
       </Card>
     </div>
