@@ -201,8 +201,8 @@ export default function TimeEntries() {
           entry={confirmDelete}
           onCancel={() => setConfirmDelete(null)}
           onConfirm={() => {
-            deleteTimeEntry(confirmDelete.id);
-            setConfirmDelete(null);
+            const result = deleteTimeEntry(confirmDelete.id);
+            if (!result.error) setConfirmDelete(null);
           }}
         />
       )}
