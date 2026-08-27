@@ -62,72 +62,66 @@ export default function TimeEntryModal({
 
   return (
     <Modal open={open} onClose={onClose} title={entry ? 'Edit time entry' : 'Add time entry'}>
-      {activeProjects.length === 0 ? (
-        <p className="text-sm text-ink-500">
-          Add an active client and project before logging time against it.
-        </p>
-      ) : (
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <Field label="Project">
-            <select
-              value={projectId}
-              onChange={(e) => setProjectId(e.target.value)}
-              className={inputClass}
-            >
-              {activeProjects.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {getClient(p.clientId)?.name} — {p.name}
-                </option>
-              ))}
-            </select>
-          </Field>
-          <Field label="Date">
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <Field label="Project">
+          <select
+            value={projectId}
+            onChange={(e) => setProjectId(e.target.value)}
+            className={inputClass}
+          >
+            {activeProjects.map((p) => (
+              <option key={p.id} value={p.id}>
+                {getClient(p.clientId)?.name} — {p.name}
+              </option>
+            ))}
+          </select>
+        </Field>
+        <Field label="Date">
+          <input
+            type="date"
+            value={date}
+            max={todayISO()}
+            onChange={(e) => setDate(e.target.value)}
+            className={inputClass}
+          />
+        </Field>
+        <div className="grid grid-cols-2 gap-4">
+          <Field label="Hours">
             <input
-              type="date"
-              value={date}
-              max={todayISO()}
-              onChange={(e) => setDate(e.target.value)}
+              type="number"
+              min={0}
+              value={hours}
+              onChange={(e) => setHours(e.target.value)}
               className={inputClass}
             />
           </Field>
-          <div className="grid grid-cols-2 gap-4">
-            <Field label="Hours">
-              <input
-                type="number"
-                min={0}
-                value={hours}
-                onChange={(e) => setHours(e.target.value)}
-                className={inputClass}
-              />
-            </Field>
-            <Field label="Minutes">
-              <input
-                type="number"
-                min={0}
-                max={59}
-                value={minutes}
-                onChange={(e) => setMinutes(e.target.value)}
-                className={inputClass}
-              />
-            </Field>
-          </div>
-          <Field label="Note" hint="Optional — e.g. “client call” or “bug fixes”">
+          <Field label="Minutes">
             <input
-              value={note}
-              onChange={(e) => setNote(e.target.value)}
+              type="number"
+              min={0}
+              max={59}
+              value={minutes}
+              onChange={(e) => setMinutes(e.target.value)}
               className={inputClass}
-              placeholder="What did you work on?"
             />
           </Field>
-          {error && <p className="text-sm text-rust">{error}</p>}
-          <div className="flex justify-end gap-2 pt-2">
-            <Button type="button" variant="ghost" onClick={onClose}>
-              Cancel
-            </Button>
-            <Button type="submit">{entry ? 'Save changes' : 'Add entry'}</Button>
-          </div>
-        </form>
-      )}
+        </div>
+        <Field label="Note" hint="Optional — e.g. “client call” or “bug fixes”">
+          <input
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            className={inputClass}
+            placeholder="What did you work on?"
+          />
+        </Field>
+        {error && <p className="text-sm text-rust">{error}</p>}
+        <div className="flex justify-end gap-2 pt-2">
+          <Button type="button" variant="ghost" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button type="submit">{entry ? 'Save changes' : 'Add entry'}</Button>
+        </div>
+      </form>
     </Modal>
   )
 }
