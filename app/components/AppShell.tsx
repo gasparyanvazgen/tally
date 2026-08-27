@@ -160,6 +160,18 @@ export default function AppShell({ children }: { children: ReactNode }) {
           </div>
           <div className="ml-auto flex items-center gap-3">
             <RunningTimer />
+            {/* Sidebar (and its logout button) is hidden below md, so give
+                tablet / mobile users a way to log out from the header. */}
+            <button
+              onClick={async () => {
+                await signOut()
+                router.push('/')
+              }}
+              aria-label="Log out"
+              className="rounded-md p-1.5 text-ink-400 hover:bg-ink-100 hover:text-ink md:hidden"
+            >
+              <IconLogout className="h-5 w-5" />
+            </button>
           </div>
         </header>
         <main className="flex-1 px-4 py-6 sm:px-8 sm:py-8">
