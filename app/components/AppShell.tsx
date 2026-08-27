@@ -83,8 +83,9 @@ export default function AppShell({ children }: { children: ReactNode }) {
   const { signOut, profile } = useAuth()
 
   return (
-    <div className="flex min-h-screen bg-paper-dim">
-      {/* Sidebar */}
+    <div className="flex h-screen overflow-hidden bg-paper-dim">
+      {/* Sidebar stays fixed in place (nav + logout always visible, no
+          scrolling needed) — only the main content area below scrolls. */}
       <aside className="hidden w-60 shrink-0 flex-col bg-ink-800 px-4 py-6 md:flex">
         <div className="mb-8 flex items-center gap-2 px-2">
           <TallyMark />
@@ -174,7 +175,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
             </button>
           </div>
         </header>
-        <main className="flex-1 px-4 py-6 sm:px-8 sm:py-8">
+        <main className="flex-1 overflow-y-auto px-4 py-6 sm:px-8 sm:py-8">
           {/* Nested route pages, such as /app/clients, appear here. */}
           {children}
         </main>
