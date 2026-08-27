@@ -11,17 +11,19 @@ import {
   Modal,
   Badge,
 } from "../../components/ui";
-import { IconPlus, IconPencil } from "../../components/icons";
+import { IconPlus, IconPencil, IconTrash } from "../../components/icons";
 import { formatMoney } from "../../utils/format";
 import type { Project } from "../../types";
 
 export default function Projects() {
   // Projects need client data because every project belongs to one client.
-  const { projects, clients, getClient } = useData();
+  const { projects, clients, getClient, timeEntries, deleteProject } =
+    useData();
   const [filter, setFilter] = useState<"all" | "active" | "completed">("all");
   const [modalProject, setModalProject] = useState<Project | "new" | null>(
     null,
   );
+  const [deleteTarget, setDeleteTarget] = useState<Project | null>(null);
 
   const activeClients = clients.filter((c) => !c.archived);
   const visible = projects.filter(
@@ -91,13 +93,22 @@ export default function Projects() {
                   <h3 className="font-display text-lg leading-snug text-ink">
                     {p.name}
                   </h3>
-                  <button
-                    onClick={() => setModalProject(p)}
-                    aria-label={`Edit ${p.name}`}
-                    className="shrink-0 rounded-md p-1 text-ink-300 transition-colors hover:bg-ink-100 hover:text-ink"
-                  >
-                    <IconPencil className="h-3.5 w-3.5" />
-                  </button>
+                  <div className="flex shrink-0 gap-1">
+                    <button
+                      onClick={() => setModalProject(p)}
+                      aria-label={`Edit ${p.name}`}
+                      className="rounded-md p-1 text-ink-300 transition-colors hover:bg-ink-100 hover:text-ink"
+                    >
+                      <IconPencil className="h-3.5 w-3.5" />
+                    </button>
+                    <button
+                      onClick={() => setDeleteTarget(p)}
+                      aria-label={`Delete ${p.name}`}
+                      className="rounded-md p-1 text-ink-300 transition-colors hover:bg-rust-light hover:text-rust"
+                    >
+                      <IconTrash className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
                 </div>
                 <p className="mt-1 text-sm text-ink-500">
                   {client?.name ?? "Unknown client"}
@@ -130,6 +141,90 @@ export default function Projects() {
           modalProject === "new" ? undefined : (modalProject ?? undefined)
         }
       />
+
+      {deleteTarget && (
+        <ConfirmDeleteProjectModal
+          project={deleteTarget}
+          entryCount={
+            timeEntries.filter((e) => e.projectId === deleteTarget.id).length
+          }
+          onCancel={() => setDeleteTarget(null)}
+          onConfirm={async () => {
+            const result = await deleteProject(deleteTarget.id);
+            if (!result.error) setDeleteTarget(null);
+            return result;
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
+function ConfirmDeleteProjectModal({
+  project,
+  entryCount,
+  onCancel,
+  onConfirm,
+}: {
+  project: Project;
+  entryCount: number;
+  onCancel: () => void;
+  onConfirm: () => Promise<{ error: string | null }>;
+}) {
+  const [deleting, setDeleting] = useState(false);
+  const [error, setError] = useState("");
+  const blocked = entryCount > 0;
+
+  // Destructive and permanent, so this always requires an explicit
+  // confirmation click rather than deleting straight from the row.
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <button
+        aria-label="Close"
+        onClick={onCancel}
+        className="fixed inset-0 bg-ink/40"
+      />
+      <div className="relative w-full max-w-sm rounded-xl border border-ink-100 bg-white p-6 shadow-xl">
+        <h2 className="font-display text-lg text-ink">
+          {blocked ? "Can't delete this project" : "Delete this project?"}
+        </h2>
+        {blocked ? (
+          <p className="mt-2 text-sm text-ink-500">
+            <strong className="text-ink">{project.name}</strong> has{" "}
+            {entryCount} time {entryCount === 1 ? "entry" : "entries"} logged
+            against it, including any that have already been invoiced. Delete
+            those time entries first, or mark the project completed instead
+            of deleting it.
+          </p>
+        ) : (
+          <p className="mt-2 text-sm text-ink-500">
+            <strong className="text-ink">{project.name}</strong> will be
+            removed for good. It has no time entries or invoices attached, so
+            nothing else will be affected — but this can't be undone.
+          </p>
+        )}
+        {error && <p className="mt-3 text-sm text-rust">{error}</p>}
+        <div className="mt-5 flex justify-end gap-2">
+          <Button variant="ghost" onClick={onCancel}>
+            {blocked ? "Close" : "Cancel"}
+          </Button>
+          {!blocked && (
+            <Button
+              variant="danger"
+              disabled={deleting}
+              onClick={async () => {
+                setDeleting(true);
+                setError("");
+                const result = await onConfirm();
+                setDeleting(false);
+                if (result.error) setError(result.error);
+              }}
+            >
+              {deleting ? "Deleting…" : "Delete project"}
+            </Button>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
