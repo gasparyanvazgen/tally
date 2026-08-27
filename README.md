@@ -1,123 +1,254 @@
 # Tally
 
-Time tracking and invoicing app for a solo freelance consultant. Next.js 14 (App Router) + TypeScript + Tailwind
-CSS, with Supabase for auth and the database schema.
+**Time Tracking & Invoicing for Freelancers**
 
-**Auth is real.** Sign-up and log-in go through Supabase Auth
-(`supabase.auth.signUp` / `signInWithPassword`), and each new user gets a
-`profiles` row created automatically by a database trigger.
+Tally is a Next.js application for freelancers to manage clients and projects, record billable time, run a work timer, and create invoices.
 
-**Everything else is still mocked.** Clients, projects, time entries, and
-invoices run on an in-memory context that persists to `localStorage`
-(`context/DataContext.tsx`), so the app behaves correctly across refreshes
-and logout/login for demo purposes, but nothing is shared between browsers
-or devices. See `BACKEND_TASKS.md` for what's left to wire up, and
-`supabase/migrations/` for the schema those tables should land in.
+## Current implementation
 
-## Running it
+Tally is currently a **hybrid application**:
 
-1. Install dependencies:
+- **Supabase:** authentication, business profiles, clients, and projects.
+- **Browser `localStorage`:** time entries, active timer state, invoices, and the invoice sequence used by the current frontend.
+- **Supabase database:** also contains `time_entries`, `invoices`, `invoice_line_items`, `invoice_counters`, RLS, triggers, and a transactional `generate_invoice()` function, but the current frontend does not use those backend objects for time/invoice operations yet.
 
-   ```bash
-   npm install
-   ```
+This distinction is important: the database schema is further along than the current frontend data layer.
 
-2. Create a Supabase project (or use an existing one) and push the schema:
+## Features
 
-   ```bash
-   supabase db push
-   ```
+- Email/password sign-up and sign-in with Supabase Auth
+- Email-confirmation callback handling
+- Protected application routes
+- Business profile editing
+- Client creation, editing, and archiving
+- Project creation, editing, completion, and guarded deletion
+- Manual time-entry creation/editing/deletion
+- Running timer
+- Local invoice generation from unbilled time
+- Paid/unpaid invoice status
+- Browser print flow for invoices
+- Responsive desktop/mobile application shell
 
-   This creates `profiles`, `clients`, `projects`, `time_entries`,
-   `invoices`, `invoice_line_items`, and `invoice_counters`, all with
-   row-level security scoped to `user_id`, plus the `generate_invoice()`
-   function and the trigger that creates a `profiles` row on sign-up.
+## Tech stack
 
-3. Copy `.env.local.example` to `.env.local` (or edit `.env.local` directly)
-   and fill in your project's values:
+- Next.js `14.2.35`
+- React `18.3.1`
+- TypeScript `^5.5.4`
+- Tailwind CSS `^3.4.10`
+- Supabase JS `^2.112.4`
+- `@supabase/ssr` `^0.12.5`
+- ESLint 9
+- PostgreSQL through Supabase
 
-   ```
-   NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
-   NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=your-anon-key
-   ```
+## Requirements
 
-   These are the anon/publishable key pair — safe to expose in a browser
-   bundle, since they're gated by the row-level security policies in the
-   migration rather than by secrecy. `.env.local` is still gitignored as a
-   matter of convention; don't commit it.
+Install Node.js and npm. A Supabase project is required for the authentication, profile, client, and project functionality.
 
-4. Run the dev server:
+## Setup
 
-   ```bash
-   npm run dev
-   ```
+### 1. Install dependencies
 
-Open the printed local URL. Sign up with any email and a 6+ character
-password. Depending on your Supabase project's auth settings, you'll either
-land straight in `/app` or be asked to confirm your email first. Once
-logged in, the dashboard, clients, projects, time entries, and invoices
-screens seed themselves with demo data on first load (see
-`utils/seed.ts`) so every screen has something to look at immediately.
-Clear `localStorage` (or open a private window) to reset that demo data —
-this does not affect your real Supabase account.
+```bash
+npm install
+```
+
+### 2. Configure Supabase
+
+Create a Supabase project and configure its URL and publishable key.
+
+The repository contains the initial database migration:
+
+```text
+supabase/migrations/20260826000000_initial_schema.sql
+```
+
+It creates the application's PostgreSQL schema, RLS policies, triggers, indexes, and `generate_invoice()` function.
+
+Apply the migration with the Supabase CLI:
+
+```bash
+supabase db push
+```
+
+or run the SQL in the Supabase SQL Editor as an administrator.
+
+### 3. Configure environment variables
+
+Create `.env.local`:
+
+```env
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=your-publishable-key
+```
+
+The current project uses exactly these two environment variables.
+
+Do not commit `.env.local`.
+
+### 4. Configure authentication
+
+The sign-up code sends confirmation links to:
+
+```text
+/auth/callback
+```
+
+The callback exchanges the Supabase authorization code for a session and redirects to `/app`.
+
+Configure the corresponding site URL and redirect URL in Supabase for the environment where the application runs.
+
+### 5. Run the application
+
+```bash
+npm run dev
+```
+
+Open:
+
+```text
+http://localhost:3000
+```
+
+### 6. Other scripts
+
+```bash
+npm run lint
+npm run build
+npm run start
+```
+
+These are the four scripts currently defined in `package.json`.
+
+## Routes
+
+| Route | Purpose | Access |
+|---|---|---|
+| `/` | Public landing page | Public |
+| `/login` | Sign in | Public/auth page |
+| `/signup` | Create account | Public/auth page |
+| `/auth/callback` | Supabase confirmation callback | Callback |
+| `/app` | Dashboard | Authenticated |
+| `/app/clients` | Client management | Authenticated |
+| `/app/projects` | Project management | Authenticated |
+| `/app/time` | Time tracking | Authenticated |
+| `/app/invoices` | Invoice list/generation | Authenticated |
+| `/app/invoices/[id]` | Invoice detail | Authenticated |
+| `/app/settings` | Business profile | Authenticated |
+
+The `/app` prefix is protected by `middleware.ts`. `app/app/layout.tsx` also wraps the application with `RequireAuth` and `AppShell`.
+
+## Main workflow
+
+```text
+Sign up / Sign in
+       ↓
+Business profile
+       ↓
+Create client
+       ↓
+Create project
+       ↓
+Log time or start timer
+       ↓
+Generate invoice
+       ↓
+Review invoice
+       ↓
+Mark paid / print
+```
+
+The first four data-management steps above are currently backed by Supabase. Time and invoice operations are currently local to the browser.
 
 ## Project structure
 
-```
+```text
 app/
-  app/            The authenticated app: dashboard, clients, projects,
-                    time entries, invoices (+ detail), settings
-  login/, signup/ Auth pages
-  components/     Shared UI: AppShell (sidebar/nav), Modal, Button, icons,
-                    TimeEntryModal, EarningsMeter (landing hero widget),
-                    RequireAuth (route guard)
-  context/        AuthContext (real Supabase session + profile) and
-                    DataContext (mock backend — clients/projects/time
-                    entries/invoices + the running timer)
-  lib/supabase/   Browser and server Supabase client helpers
-  types/          Shared TypeScript types — mirrors the data model the
-                    rest of the backend should implement
-  utils/          Formatting helpers and seed/demo data
+├── app/
+│   ├── page.tsx
+│   ├── clients/page.tsx
+│   ├── projects/page.tsx
+│   ├── time/page.tsx
+│   ├── invoices/page.tsx
+│   ├── invoices/[id]/page.tsx
+│   ├── settings/page.tsx
+│   └── layout.tsx
+├── auth/callback/route.ts
+├── components/
+├── context/
+│   ├── AuthContext.tsx
+│   └── DataContext.tsx
+├── lib/supabase/
+│   ├── client.ts
+│   └── server.ts
+├── login/page.tsx
+├── signup/page.tsx
+├── types/index.ts
+├── utils/
+├── layout.tsx
+├── providers.tsx
+└── not-found.tsx
+
 supabase/
-  migrations/     SQL schema, RLS policies, and the generate_invoice()
-                    function
+├── migrations/
+│   └── 20260826000000_initial_schema.sql
+└── config.toml
 ```
 
-## Design notes
+## Documentation
 
-- Palette: warm paper background, near-black "ink" for text and the sidebar,
-  a stamp-green accent for paid/positive states, rust for unpaid/attention,
-  amber for the live-running timer.
-- Type: Fraunces (display headings), IBM Plex Sans (body/UI), IBM Plex Mono
-  (anything numeric — durations, money, invoice numbers) so figures read
-  clearly and consistently, the way they would on an actual invoice.
-- The landing page's hero is a live "earnings meter" — a running counter tied
-  to an adjustable hourly rate — as the one deliberate signature element; the
-  "how it works" numbering on that page is a real 3-step sequence, not
-  decoration.
+- [Architecture](docs/ARCHITECTURE.md)
+- [Database](docs/DATABASE.md)
+- [Development](docs/DEVELOPMENT.md)
+- [Security](SECURITY.md)
 
-## What's mocked vs. real
+## Known limitations
 
-| Feature                                  | Status                                                                                                              |
-| ----------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
-| Auth (sign-up, log-in, session)          | Real — Supabase Auth                                                                                                |
-| Business profile (Settings)              | Real — reads/writes the `profiles` table                                                                            |
-| Clients / Projects CRUD, archive         | Mock (in-memory + localStorage)                                                                                     |
-| Timer start/stop                         | Mock, ticks live, creates a time entry on stop                                                                      |
-| Manual time entries, edit/delete         | Mock                                                                                                                 |
-| Dashboard stats & chart                  | Computed live from the mock entries above                                                                           |
-| Invoice generation from unbilled entries | Mock — pulls matching entries client-side, marks them billed. The real, atomic version already exists as the `generate_invoice()` Postgres function in the migration but isn't wired into the UI yet. |
-| Invoice PDF                              | Uses the browser's print-to-PDF on a styled invoice page — good enough to demo, not a substitute for backend task 6 |
-| Data persistence (clients/projects/time entries/invoices) | `localStorage` only — not shared across devices/browsers                                              |
+### Time and invoices are not yet persistent backend data
 
-## Known gaps to close before this is a real product
+`DataContext.tsx` stores these in:
 
-- Clients, projects, time entries, and invoices still need to be moved off
-  `localStorage` and onto the Supabase tables the migration already
-  defines.
-- No validation beyond the client-side checks already in each form (e.g. no
-  rate limiting on auth beyond what Supabase provides by default).
-- No handling for concurrent edits, since there's only ever one browser tab's
-  localStorage involved right now for the still-mocked data.
-- Currency formatting assumes USD/EUR/GBP with straightforward symbol
-  prefixes; real multi-currency invoicing may need locale-aware formatting.
+```text
+tally.data.v1
+```
+
+inside browser `localStorage`:
+
+```text
+timeEntries
+invoices
+activeTimer
+invoiceSeq
+```
+
+Therefore this data is tied to the browser/device and is not currently synchronized through Supabase.
+
+### Backend invoice generation is not wired to the UI
+
+The SQL migration contains:
+
+```sql
+public.generate_invoice(...)
+```
+
+which creates the invoice, line items, and billed-time state transactionally.
+
+The current frontend instead runs its own invoice-generation logic inside `DataContext.tsx`.
+
+### Invoice PDF
+
+The invoice detail page uses the browser's print flow rather than generating a dedicated PDF file on the server.
+
+## Next backend milestone
+
+Move these operations from `DataContext`/`localStorage` to Supabase:
+
+```text
+time entries
+active timer persistence
+invoices
+invoice line items
+invoice numbering
+paid/unpaid status
+```
+
+Then use `public.generate_invoice()` as the authoritative invoice-generation path.
