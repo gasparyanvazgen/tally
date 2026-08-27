@@ -20,6 +20,15 @@ export default function Dashboard() {
     useData();
   const [entryModalOpen, setEntryModalOpen] = useState(false);
 
+  // Same "needs an active client + project" check TimeEntryModal itself
+  // uses, computed here so the trigger button can be disabled up front
+  // instead of opening a modal that just explains why it can't be used —
+  // matching how the Projects and Time Entries pages already handle this.
+  const activeProjects = projects.filter((p) => {
+    const client = getClient(p.clientId);
+    return client && !client.archived;
+  });
+
   const weekStart = startOfWeekISO();
   const monthStart = startOfMonthISO();
 
@@ -85,7 +94,15 @@ export default function Dashboard() {
             Here's where things stand today.
           </p>
         </div>
-        <Button onClick={() => setEntryModalOpen(true)}>
+        <Button
+          onClick={() => setEntryModalOpen(true)}
+          disabled={activeProjects.length === 0}
+          title={
+            activeProjects.length === 0
+              ? "Add an active client and project first"
+              : undefined
+          }
+        >
           <IconPlus className="h-4 w-4" />
           New time entry
         </Button>

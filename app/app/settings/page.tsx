@@ -13,9 +13,24 @@ export default function Settings() {
     profile.email || email || "",
   );
   const [address, setAddress] = useState(profile.address);
+  // Snapshot of the last-saved values. Only used to tell whether the form
+  // has unsaved changes — starts equal to the fields above and is re-set
+  // after every successful save, so "Save changes" disables itself again.
+  const [baseline, setBaseline] = useState({
+    businessName: profile.businessName,
+    ownerName: profile.ownerName,
+    email: profile.email || email || "",
+    address: profile.address,
+  });
   const [saved, setSaved] = useState(false);
   const [saveError, setSaveError] = useState("");
   const [saving, setSaving] = useState(false);
+
+  const isDirty =
+    businessName !== baseline.businessName ||
+    ownerName !== baseline.ownerName ||
+    profileEmail !== baseline.email ||
+    address !== baseline.address;
 
   async function handleSubmit(e: FormEvent) {
     // Save the form values via AuthContext, which writes to the profiles table.
@@ -33,6 +48,12 @@ export default function Settings() {
       setSaveError(error);
       return;
     }
+    setBaseline({
+      businessName,
+      ownerName,
+      email: profileEmail,
+      address,
+    });
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   }
@@ -84,7 +105,7 @@ export default function Settings() {
           </Field>
           {saveError && <p className="text-sm text-rust">{saveError}</p>}
           <div className="flex items-center gap-3 pt-2">
-            <Button type="submit" disabled={saving}>
+            <Button type="submit" disabled={saving || !isDirty}>
               {saving ? "Saving…" : "Save changes"}
             </Button>
             {saved && <span className="text-sm text-stamp-dark">Saved.</span>}
