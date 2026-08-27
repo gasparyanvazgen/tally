@@ -125,7 +125,7 @@ export default function Clients() {
                     <Badge>{c.currency}</Badge>
                   </td>
                   <td className="px-5 py-3.5">
-                    <div className="flex justify-end gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+                    <div className="flex justify-end gap-1">
                       <button
                         onClick={() => setModalClient(c)}
                         aria-label={`Edit ${c.name}`}
