@@ -21,6 +21,10 @@ interface AuthContextValue {
   // True until the initial session check finishes. RequireAuth waits on
   // this instead of redirecting a still-logged-in user to /login on refresh.
   loading: boolean;
+  // The signed-in user's id (matches auth.uid() / the user_id column RLS
+  // policies check against). null when signed out. DataContext uses this
+  // to scope its own Supabase reads/writes without a second auth listener.
+  userId: string | null;
   email: string | null;
   profile: BusinessProfile;
   // True right after signUp when the project requires email confirmation
@@ -103,6 +107,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     () => ({
       isAuthenticated: !!user,
       loading,
+      userId: user?.id ?? null,
       email: user?.email ?? null,
       profile,
       needsEmailConfirmation,
