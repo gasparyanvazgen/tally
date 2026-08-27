@@ -120,6 +120,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           password,
           options: {
             data: businessName ? { business_name: businessName } : undefined,
+            // Where the confirmation email's link sends the user back to.
+            // The route handler there exchanges the code for a session
+            // server-side and redirects into /app.
+            emailRedirectTo: `${window.location.origin}/auth/callback`,
           },
         });
         // Two different signals mean "this email is already registered":
