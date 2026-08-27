@@ -23,8 +23,8 @@ const AVATAR_TONES = [
 ];
 
 export default function Clients() {
-  // Client actions update DataContext, which currently saves to localStorage.
-  const { clients, archiveClient } = useData();
+  // Clients live in Supabase now, scoped to the signed-in user by RLS.
+  const { clients, clientsLoading, archiveClient } = useData();
   const [tab, setTab] = useState<"active" | "archived">("active");
   const [modalClient, setModalClient] = useState<Client | "new" | null>(null);
 
@@ -68,7 +68,9 @@ export default function Clients() {
         ))}
       </div>
 
-      {visible.length === 0 ? (
+      {clientsLoading ? (
+        <p className="py-10 text-center text-sm text-ink-400">Loading clients…</p>
+      ) : visible.length === 0 ? (
         <EmptyState
           title={
             tab === "active" ? "No active clients yet" : "No archived clients"
@@ -132,7 +134,11 @@ export default function Clients() {
                         <IconPencil className="h-4 w-4" />
                       </button>
                       <button
-                        onClick={() => archiveClient(c.id, !c.archived)}
+                        onClick={() => {
+                          archiveClient(c.id, !c.archived).then((result) => {
+                            if (result.error) console.error(result.error);
+                          });
+                        }}
                         aria-label={
                           c.archived ? `Restore ${c.name}` : `Archive ${c.name}`
                         }
@@ -176,6 +182,7 @@ function ClientModal({
   );
   const [currency, setCurrency] = useState<Currency>(client?.currency ?? "USD");
   const [error, setError] = useState("");
+  const [saving, setSaving] = useState(false);
 
   // Clear the draft after the dialog is saved or closed.
   function reset() {
@@ -201,7 +208,7 @@ function ClientModal({
       title={client ? "Edit client" : "Add client"}
     >
       <form
-        onSubmit={(e) => {
+        onSubmit={async (e) => {
           e.preventDefault();
           if (!name.trim()) {
             setError("Give the client a name.");
@@ -218,8 +225,15 @@ function ClientModal({
             defaultRate: rate,
             currency,
           };
-          if (client) updateClient(client.id, payload);
-          else addClient(payload);
+          setSaving(true);
+          const result = client
+            ? await updateClient(client.id, payload)
+            : await addClient(payload);
+          setSaving(false);
+          if (result.error) {
+            setError(result.error);
+            return;
+          }
           onClose();
         }}
         className="space-y-4"
@@ -271,8 +285,8 @@ function ClientModal({
           <Button type="button" variant="ghost" onClick={onClose}>
             Cancel
           </Button>
-          <Button type="submit">
-            {client ? "Save changes" : "Add client"}
+          <Button type="submit" disabled={saving}>
+            {saving ? "Saving…" : client ? "Save changes" : "Add client"}
           </Button>
         </div>
       </form>
