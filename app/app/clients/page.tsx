@@ -89,7 +89,10 @@ export default function Clients() {
         />
       ) : (
         <Card className="overflow-hidden">
-          <table className="w-full text-left text-sm">
+          {/* Horizontal scroll region so Currency and the row actions stay
+              reachable on tablet / mobile instead of being clipped. */}
+          <div className="overflow-x-auto">
+          <table className="w-full min-w-[640px] text-left text-sm">
             <thead>
               <tr className="border-b border-ink-100 text-xs uppercase tracking-wide text-ink-400">
                 <th className="px-5 py-3 font-medium">Client</th>
@@ -143,6 +146,7 @@ export default function Clients() {
               ))}
             </tbody>
           </table>
+          </div>
         </Card>
       )}
 

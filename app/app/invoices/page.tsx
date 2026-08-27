@@ -78,54 +78,58 @@ export default function Invoices() {
         />
       ) : (
         <Card className="overflow-hidden">
-          <table className="w-full text-left text-sm">
-            <thead>
-              <tr className="border-b border-ink-100 text-xs uppercase tracking-wide text-ink-400">
-                <th className="px-5 py-3 font-medium">Invoice</th>
-                <th className="px-5 py-3 font-medium">Client</th>
-                <th className="px-5 py-3 font-medium">Period</th>
-                <th className="px-5 py-3 font-medium">Total</th>
-                <th className="px-5 py-3 font-medium">Status</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-ink-100">
-              {visible.map((inv) => (
-                <tr key={inv.id} className="hover:bg-paper-dim/60">
-                  <td className="px-5 py-3.5">
-                    <Link
-                      href={`/app/invoices/${inv.id}`}
-                      className="font-mono text-ink hover:text-stamp"
-                    >
-                      {inv.number}
-                    </Link>
-                  </td>
-                  <td className="px-5 py-3.5 text-ink-700">
-                    {getClient(inv.clientId)?.name}
-                  </td>
-                  <td className="px-5 py-3.5 text-ink-500">
-                    {formatDate(inv.rangeStart)} – {formatDate(inv.rangeEnd)}
-                  </td>
-                  <td className="px-5 py-3.5 font-mono tabular text-ink">
-                    {formatMoney(inv.total, inv.currency)}
-                  </td>
-                  <td className="px-5 py-3.5">
-                    <button
-                      onClick={() =>
-                        markInvoiceStatus(
-                          inv.id,
-                          inv.status === "paid" ? "unpaid" : "paid",
-                        )
-                      }
-                    >
-                      <Badge tone={inv.status === "paid" ? "stamp" : "rust"}>
-                        {inv.status === "paid" ? "Paid" : "Unpaid"}
-                      </Badge>
-                    </button>
-                  </td>
+          {/* Horizontal scroll region keeps the Status column reachable on
+              tablet / mobile instead of being clipped off-screen. */}
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[640px] text-left text-sm">
+              <thead>
+                <tr className="border-b border-ink-100 text-xs uppercase tracking-wide text-ink-400">
+                  <th className="px-5 py-3 font-medium">Invoice</th>
+                  <th className="px-5 py-3 font-medium">Client</th>
+                  <th className="px-5 py-3 font-medium">Period</th>
+                  <th className="px-5 py-3 font-medium">Total</th>
+                  <th className="px-5 py-3 font-medium">Status</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-ink-100">
+                {visible.map((inv) => (
+                  <tr key={inv.id} className="hover:bg-paper-dim/60">
+                    <td className="px-5 py-3.5">
+                      <Link
+                        href={`/app/invoices/${inv.id}`}
+                        className="font-mono text-ink hover:text-stamp"
+                      >
+                        {inv.number}
+                      </Link>
+                    </td>
+                    <td className="px-5 py-3.5 text-ink-700">
+                      {getClient(inv.clientId)?.name}
+                    </td>
+                    <td className="px-5 py-3.5 text-ink-500">
+                      {formatDate(inv.rangeStart)} – {formatDate(inv.rangeEnd)}
+                    </td>
+                    <td className="px-5 py-3.5 font-mono tabular text-ink">
+                      {formatMoney(inv.total, inv.currency)}
+                    </td>
+                    <td className="px-5 py-3.5">
+                      <button
+                        onClick={() =>
+                          markInvoiceStatus(
+                            inv.id,
+                            inv.status === "paid" ? "unpaid" : "paid",
+                          )
+                        }
+                      >
+                        <Badge tone={inv.status === "paid" ? "stamp" : "rust"}>
+                          {inv.status === "paid" ? "Paid" : "Unpaid"}
+                        </Badge>
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </Card>
       )}
 

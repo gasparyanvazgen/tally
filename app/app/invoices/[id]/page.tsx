@@ -110,34 +110,38 @@ export default function InvoiceDetail() {
           </div>
         </div>
 
-        <table className="w-full text-left text-sm">
-          <thead>
-            <tr className="border-b border-ink-200 text-xs uppercase tracking-wide text-ink-400">
-              <th className="py-2 font-medium">Date</th>
-              <th className="py-2 font-medium">Project</th>
-              <th className="py-2 text-right font-medium">Hours</th>
-              <th className="py-2 text-right font-medium">Rate</th>
-              <th className="py-2 text-right font-medium">Subtotal</th>
-            </tr>
-          </thead>
-          <tbody>
-            {invoice.lineItems.map((li) => (
-              <tr key={li.entryId} className="border-b border-rule">
-                <td className="py-3 text-ink-500">{formatDate(li.date)}</td>
-                <td className="py-3 text-ink-700">{li.projectName}</td>
-                <td className="py-3 text-right font-mono tabular text-ink-600">
-                  {li.hours.toFixed(2)}
-                </td>
-                <td className="py-3 text-right font-mono tabular text-ink-600">
-                  {formatMoney(li.rate, invoice.currency)}
-                </td>
-                <td className="py-3 text-right font-mono tabular text-ink">
-                  {formatMoney(li.subtotal, invoice.currency)}
-                </td>
+        {/* Horizontal scroll region keeps every column reachable on
+            tablet / mobile instead of squeezing or clipping the table. */}
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[560px] text-left text-sm">
+            <thead>
+              <tr className="border-b border-ink-200 text-xs uppercase tracking-wide text-ink-400">
+                <th className="py-2 font-medium">Date</th>
+                <th className="py-2 font-medium">Project</th>
+                <th className="py-2 text-right font-medium">Hours</th>
+                <th className="py-2 text-right font-medium">Rate</th>
+                <th className="py-2 text-right font-medium">Subtotal</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {invoice.lineItems.map((li) => (
+                <tr key={li.entryId} className="border-b border-rule">
+                  <td className="py-3 text-ink-500">{formatDate(li.date)}</td>
+                  <td className="py-3 text-ink-700">{li.projectName}</td>
+                  <td className="py-3 text-right font-mono tabular text-ink-600">
+                    {li.hours.toFixed(2)}
+                  </td>
+                  <td className="py-3 text-right font-mono tabular text-ink-600">
+                    {formatMoney(li.rate, invoice.currency)}
+                  </td>
+                  <td className="py-3 text-right font-mono tabular text-ink">
+                    {formatMoney(li.subtotal, invoice.currency)}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
 
         <div className="mt-6 flex justify-end">
           <div className="w-full max-w-[220px]">
