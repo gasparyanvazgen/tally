@@ -1,103 +1,151 @@
 # Tally
 
-**Time Tracking & Invoicing for Freelancers**
+<p align="center">
+  <strong>Time tracking & invoicing for freelancers</strong>
+</p>
 
-Tally is a Next.js application for freelancers to manage clients and projects, record billable time, run a work timer, and create invoices.
+<p align="center">
+  Track your time, manage clients and projects, and create invoices from one place.
+</p>
 
-## Current implementation
+<!-- <p align="center">
+  <a href="YOUR_LIVE_URL">Live Demo</a>
+  ·
+  <a href="YOUR_GITHUB_URL">Repository</a>
+  ·
+  <a href="YOUR_GITHUB_URL/issues">Issues</a>
+</p> -->
 
-Tally is currently a **hybrid application**:
+<p align="center">
 
-- **Supabase:** authentication, business profiles, clients, and projects.
-- **Browser `localStorage`:** time entries, active timer state, invoices, and the invoice sequence used by the current frontend.
-- **Supabase database:** also contains `time_entries`, `invoices`, `invoice_line_items`, `invoice_counters`, RLS, triggers, and a transactional `generate_invoice()` function, but the current frontend does not use those backend objects for time/invoice operations yet.
+[![MIT License](https://img.shields.io/badge/license-MIT-yellow.svg)](LICENSE)
+[![Next.js](https://img.shields.io/badge/Next.js-black?logo=next.js)](https://nextjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-blue?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Supabase](https://img.shields.io/badge/Supabase-3ECF8E?logo=supabase&logoColor=white)](https://supabase.com/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?logo=postgresql&logoColor=white)](https://www.postgresql.org/)
 
-This distinction is important: the database schema is further along than the current frontend data layer.
+</p>
 
-## Features
+---
 
-- Email/password sign-up and sign-in with Supabase Auth
-- Email-confirmation callback handling
-- Protected application routes
-- Business profile editing
-- Client creation, editing, and archiving
-- Project creation, editing, completion, and guarded deletion
-- Manual time-entry creation/editing/deletion
-- Running timer
-- Local invoice generation from unbilled time
-- Paid/unpaid invoice status
-- Browser print flow for invoices
-- Responsive desktop/mobile application shell
+## 📸 Screenshots
 
-## Tech stack
+### Dashboard
 
-- Next.js `14.2.35`
-- React `18.3.1`
-- TypeScript `^5.5.4`
-- Tailwind CSS `^3.4.10`
-- Supabase JS `^2.112.4`
-- `@supabase/ssr` `^0.12.5`
-- ESLint 9
-- PostgreSQL through Supabase
+<p align="center">
+  <img src="docs/images/dashboard.png" alt="Tally Dashboard" width="900">
+</p>
 
-## Requirements
+### Time Tracking
 
-Install Node.js and npm. A Supabase project is required for the authentication, profile, client, and project functionality.
+<p align="center">
+  <img src="docs/images/time-tracking.png" alt="Tally Time Tracking" width="900">
+</p>
 
-## Setup
+### Invoices
 
-### 1. Install dependencies
+<p align="center">
+  <img src="docs/images/invoices.png" alt="Tally Invoices" width="900">
+</p>
+
+---
+
+## ✨ Features
+
+- ⏱️ **Time tracking** — Track time spent on projects.
+- 👥 **Client management** — Manage clients and their projects.
+- 📁 **Project management** — Organize work by project.
+- 🧾 **Invoicing** — Create and manage invoices.
+- 🔐 **Authentication** — Secure user authentication.
+- 🛡️ **Row Level Security** — Protect user-owned data at the database level.
+- 📱 **Responsive UI** — Use Tally across different screen sizes.
+
+> Tally is actively under development. Some features are still being migrated from browser-based persistence to the Supabase/PostgreSQL backend.
+
+---
+
+## 🛠️ Tech Stack
+
+| Technology | Purpose |
+|---|---|
+| **Next.js** | Full-stack React framework |
+| **React** | User interface |
+| **TypeScript** | Type safety |
+| **Supabase** | Authentication and backend services |
+| **PostgreSQL** | Persistent application database |
+| **Tailwind CSS** | Styling |
+| **GitHub** | Source control and collaboration |
+
+---
+
+## 🏗️ Architecture
+
+```text
+                    TALLY
+                      │
+                      ▼
+              ┌───────────────┐
+              │   Next.js     │
+              │   React UI    │
+              └───────┬───────┘
+                      │
+                      ▼
+              ┌───────────────┐
+              │   Supabase    │
+              │  Auth + API   │
+              └───────┬───────┘
+                      │
+                      ▼
+              ┌───────────────┐
+              │  PostgreSQL   │
+              │  Data + RLS   │
+              └───────────────┘
+````
+
+For more details:
+
+* [Architecture](docs/ARCHITECTURE.md)
+* [Database](docs/DATABASE.md)
+* [Development Guide](docs/DEVELOPMENT.md)
+
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+Make sure you have:
+
+* Node.js
+* npm
+* A Supabase project
+
+### 1. Clone the repository
+
+```bash
+git clone YOUR_GITHUB_URL
+cd tally-app
+```
+
+### 2. Install dependencies
 
 ```bash
 npm install
 ```
 
-### 2. Configure Supabase
-
-Create a Supabase project and configure its URL and publishable key.
-
-The repository contains the initial database migration:
-
-```text
-supabase/migrations/20260826000000_initial_schema.sql
-```
-
-It creates the application's PostgreSQL schema, RLS policies, triggers, indexes, and `generate_invoice()` function.
-
-Apply the migration with the Supabase CLI:
-
-```bash
-supabase db push
-```
-
-or run the SQL in the Supabase SQL Editor as an administrator.
-
 ### 3. Configure environment variables
 
-Create `.env.local`:
-
-```env
-NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
-NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=your-publishable-key
-```
-
-The current project uses exactly these two environment variables.
-
-Do not commit `.env.local`.
-
-### 4. Configure authentication
-
-The sign-up code sends confirmation links to:
+Create:
 
 ```text
-/auth/callback
+.env.local
 ```
 
-The callback exchanges the Supabase authorization code for a session and redirects to `/app`.
+Add the required Supabase environment variables.
 
-Configure the corresponding site URL and redirect URL in Supabase for the environment where the application runs.
+> Never commit `.env.local` or any secret keys.
 
-### 5. Run the application
+### 4. Start the development server
 
 ```bash
 npm run dev
@@ -109,146 +157,71 @@ Open:
 http://localhost:3000
 ```
 
-### 6. Other scripts
+---
 
-```bash
-npm run lint
-npm run build
-npm run start
-```
+## 📚 Documentation
 
-These are the four scripts currently defined in `package.json`.
+| Document                              | Description                                 |
+| ------------------------------------- | ------------------------------------------- |
+| [Security](SECURITY.md)               | Security policy and vulnerability reporting |
+| [Contributing](CONTRIBUTING.md)       | How to contribute to Tally                  |
+| [Code of Conduct](CODE_OF_CONDUCT.md) | Community guidelines                        |
+| [Architecture](docs/ARCHITECTURE.md)  | Application architecture                    |
+| [Database](docs/DATABASE.md)          | PostgreSQL, Supabase and RLS                |
+| [Development](docs/DEVELOPMENT.md)    | Development workflow                        |
 
-## Routes
+---
 
-| Route | Purpose | Access |
-|---|---|---|
-| `/` | Public landing page | Public |
-| `/login` | Sign in | Public/auth page |
-| `/signup` | Create account | Public/auth page |
-| `/auth/callback` | Supabase confirmation callback | Callback |
-| `/app` | Dashboard | Authenticated |
-| `/app/clients` | Client management | Authenticated |
-| `/app/projects` | Project management | Authenticated |
-| `/app/time` | Time tracking | Authenticated |
-| `/app/invoices` | Invoice list/generation | Authenticated |
-| `/app/invoices/[id]` | Invoice detail | Authenticated |
-| `/app/settings` | Business profile | Authenticated |
+## 🗺️ Project Status
 
-The `/app` prefix is protected by `middleware.ts`. `app/app/layout.tsx` also wraps the application with `RequireAuth` and `AppShell`.
+Tally is actively under development.
 
-## Main workflow
+The current development focus is moving the application toward a production-ready architecture:
 
 ```text
-Sign up / Sign in
-       ↓
-Business profile
-       ↓
-Create client
-       ↓
-Create project
-       ↓
-Log time or start timer
-       ↓
-Generate invoice
-       ↓
-Review invoice
-       ↓
-Mark paid / print
+Browser-only persistence
+        ↓
+Supabase/PostgreSQL
+        ↓
+Database-enforced authorization
+        ↓
+Production-ready application
 ```
 
-The first four data-management steps above are currently backed by Supabase. Time and invoice operations are currently local to the browser.
+Planned development includes:
 
-## Project structure
+* [ ] Move remaining business data from `localStorage` to Supabase.
+* [ ] Complete Supabase RLS policies.
+* [ ] Implement transactional invoice generation.
+* [ ] Add comprehensive validation.
+* [ ] Improve automated testing.
+* [ ] Add CI/CD.
+* [ ] Improve production error handling.
 
-```text
-app/
-├── app/
-│   ├── page.tsx
-│   ├── clients/page.tsx
-│   ├── projects/page.tsx
-│   ├── time/page.tsx
-│   ├── invoices/page.tsx
-│   ├── invoices/[id]/page.tsx
-│   ├── settings/page.tsx
-│   └── layout.tsx
-├── auth/callback/route.ts
-├── components/
-├── context/
-│   ├── AuthContext.tsx
-│   └── DataContext.tsx
-├── lib/supabase/
-│   ├── client.ts
-│   └── server.ts
-├── login/page.tsx
-├── signup/page.tsx
-├── types/index.ts
-├── utils/
-├── layout.tsx
-├── providers.tsx
-└── not-found.tsx
+See the project's [GitHub Issues](YOUR_GITHUB_URL/issues) for the current development roadmap.
 
-supabase/
-├── migrations/
-│   └── 20260826000000_initial_schema.sql
-└── config.toml
-```
+---
 
-## Documentation
+## 🤝 Contributing
 
-- [Architecture](docs/ARCHITECTURE.md)
-- [Database](docs/DATABASE.md)
-- [Development](docs/DEVELOPMENT.md)
-- [Security](SECURITY.md)
+Contributions are welcome!
 
-## Known limitations
+Before contributing, please read:
 
-### Time and invoices are not yet persistent backend data
+* [Contributing Guide](CONTRIBUTING.md)
+* [Code of Conduct](CODE_OF_CONDUCT.md)
 
-`DataContext.tsx` stores these in:
+For security vulnerabilities, please follow the
+[Security Policy](SECURITY.md) instead of opening a public issue.
 
-```text
-tally.data.v1
-```
+---
 
-inside browser `localStorage`:
+## 📄 License
 
-```text
-timeEntries
-invoices
-activeTimer
-invoiceSeq
-```
+Tally is open source software licensed under the [MIT License](LICENSE).
 
-Therefore this data is tied to the browser/device and is not currently synchronized through Supabase.
+---
 
-### Backend invoice generation is not wired to the UI
-
-The SQL migration contains:
-
-```sql
-public.generate_invoice(...)
-```
-
-which creates the invoice, line items, and billed-time state transactionally.
-
-The current frontend instead runs its own invoice-generation logic inside `DataContext.tsx`.
-
-### Invoice PDF
-
-The invoice detail page uses the browser's print flow rather than generating a dedicated PDF file on the server.
-
-## Next backend milestone
-
-Move these operations from `DataContext`/`localStorage` to Supabase:
-
-```text
-time entries
-active timer persistence
-invoices
-invoice line items
-invoice numbering
-paid/unpaid status
-```
-
-Then use `public.generate_invoice()` as the authoritative invoice-generation path.
+<p align="center">
+  Built with ❤️ using Next.js, TypeScript, Supabase and PostgreSQL.
+</p>
